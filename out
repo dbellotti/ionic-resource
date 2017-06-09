@@ -1,0 +1,32 @@
+#! /bin/bash
+
+set -ex
+
+function errcho {
+	>&2 echo $1
+}
+
+DEST_PATH=$1
+CONFIG=$(cat)
+
+CHANNEL=$(echo $CONFIG | jq -r .source.env)
+API_TOKEN=$(echo $CONFIG | jq -r .source.api_token)
+LAST_VERSION=$(echo $CONFIG | jq -r .version.ref)
+EMAIL=$(echo $CONFIG | jq -r .source.email)
+PASSWORD=$(echo $CONFIG | jq -r .source.password)
+BUILT_APP=$(echo $CONFIG | jq -r .params.path)
+
+errcho "Channel: $CHANNEL"
+errcho "Last Version: $LAST_VERSION"
+
+cd "${DEST_PATH}/${BUILT_APP}"
+
+COMMIT_SUMMARY=$(git log --pretty=format:"%h %an - %s" -1)
+DATE=$(date "+%a %D %H:%M")
+
+errcho $(ionic upload --deploy "$CHANNEL" -e "$EMAIL" -p "$PASSWORD" --note "[form-bot CI deploy on $DATE] $COMMIT_SUMMARY")
+
+CURRENT_VERSION=$(curl --request GET --url "https://api.ionic.io/deploy/channels/${CHANNEL}" --header "Authorization: Bearer ${API_TOKEN}" | jq -r .data.deploy.uuid)
+
+printf '{"version":{"ref":"%s"}}' "$CURRENT_VERSION"
+

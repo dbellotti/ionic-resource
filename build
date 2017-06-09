@@ -1,0 +1,4 @@
+#! /bin/bash
+
+docker build -t dbellotti/ionic-cloud-resource . && \
+docker push dbellotti/ionic-cloud-resource
