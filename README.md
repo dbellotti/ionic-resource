@@ -24,7 +24,7 @@ jobs:
 - name: job-deploy-app
   plan:
   - get: resource-ionic-app
-		trigger: true
+    trigger: true
   - task: build
     file: resource-ionic-app/build.yml
   - put: resource-deploy-ionic-app
